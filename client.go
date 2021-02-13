@@ -190,9 +190,9 @@ type Result struct {
 	Title string
 	// Video resolution and source, e.g. "720p" or "720p (web)"
 	Quality string
-	// Torrent info_hash
+	// Torrent info_hash. Lowercase.
 	InfoHash string
-	// MagnetURL, usually containing the info_hash, torrent name and a list of torrent trackers
+	// MagnetURL, usually containing the info_hash (can be uppercase), torrent name and a list of torrent trackers
 	MagnetURL string
 	// True if the client didn't do the search via IMDb ID but title, which can lead to inaccurate results
 	Fuzzy bool

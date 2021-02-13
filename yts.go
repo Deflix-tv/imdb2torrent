@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -121,6 +122,7 @@ func (c *ytsClient) FindMovie(ctx context.Context, imdbID string) ([]Result, err
 				c.logger.Error("InfoHash isn't 40 characters long", zapFieldID, zapFieldTorrentSite)
 				continue
 			}
+			infoHash = strings.ToLower(infoHash)
 			magnetURL := createMagnetURL(ctx, infoHash, title, trackersYTS)
 			ripType := torrent.Get("type").String()
 			if ripType != "" {

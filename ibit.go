@@ -189,21 +189,21 @@ func (c *ibitClient) FindMovie(ctx context.Context, imdbID string) ([]Result, er
 		match := magnet2InfoHashRegex.Find([]byte(magnet))
 		infoHash := strings.TrimPrefix(string(match), "btih:")
 		infoHash = strings.TrimSuffix(infoHash, "&")
-		infoHash = strings.ToUpper(infoHash)
+		infoHash = strings.ToLower(infoHash)
 		// ibit changes their HTML sometimes, let's try another way if the previous one didn't yield a result
 		if infoHash == "" {
 			match = magnet2InfoHashRegexIbit.Find([]byte(magnet))
 			infoHash = strings.TrimPrefix(string(match), "btih:")
 			infoHash = strings.TrimSuffix(infoHash, `\x26dn=`)
 			infoHash = strings.ReplaceAll(infoHash, "-", "")
-			infoHash = strings.ToUpper(infoHash)
+			infoHash = strings.ToLower(infoHash)
 			if infoHash == "" {
 				c.logger.Warn("Couldn't extract info_hash. Did the HTML change?", zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
 				continue
 			}
-			// They add some "XX" into the info_hash
+			// They add some "XX" into the info_hash (here lowercase by now)
 			if len(infoHash) != 40 {
-				infoHash = strings.ReplaceAll(infoHash, "XX", "")
+				infoHash = strings.ReplaceAll(infoHash, "xx", "")
 				if len(infoHash) != 40 {
 					c.logger.Warn("InfoHash isn't 40 characters long", zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
 					continue
@@ -219,7 +219,7 @@ func (c *ibitClient) FindMovie(ctx context.Context, imdbID string) ([]Result, er
 			magnetTail = strings.ReplaceAll(magnetTail, `\x26`, "&")
 			magnet = "magnet:?xt=urn:btih:" + infoHash + "&dn=" + url.QueryEscape(title) + magnetTail
 		} else if len(infoHash) != 40 {
-			newInfoHash := strings.ReplaceAll(infoHash, "XX", "")
+			newInfoHash := strings.ReplaceAll(infoHash, "xx", "")
 			if len(infoHash) != 40 {
 				c.logger.Warn("InfoHash isn't 40 characters long", zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
 				continue

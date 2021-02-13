@@ -166,7 +166,7 @@ func (c *rarbgClient) find(ctx context.Context, id, escapedQuery string) ([]Resu
 		match := magnet2InfoHashRegex.Find([]byte(magnet))
 		infoHash := strings.TrimPrefix(string(match), "btih:")
 		infoHash = strings.TrimSuffix(infoHash, "&")
-		infoHash = strings.ToUpper(infoHash)
+		infoHash = strings.ToLower(infoHash)
 
 		if len(infoHash) != 40 {
 			c.logger.Error("InfoHash isn't 40 characters long", zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)

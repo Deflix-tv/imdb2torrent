@@ -230,7 +230,7 @@ func (c *leetxClient) find(ctx context.Context, id, urlPath, title string, isTVS
 			match := magnet2InfoHashRegex.Find([]byte(magnet))
 			infoHash := strings.TrimPrefix(string(match), "btih:")
 			infoHash = strings.TrimSuffix(infoHash, "&")
-			infoHash = strings.ToUpper(infoHash)
+			infoHash = strings.ToLower(infoHash)
 
 			if infoHash == "" {
 				c.logger.Warn("Couldn't extract info_hash. Did the HTML change?", zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)

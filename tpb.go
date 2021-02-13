@@ -189,6 +189,7 @@ func (c *tpbClient) find(ctx context.Context, id, title, escapedQuery string) ([
 			c.logger.Error("InfoHash isn't 40 characters long", zapFieldID, zapFieldTorrentSite)
 			continue
 		}
+		infoHash = strings.ToLower(infoHash)
 		magnetURL := createMagnetURL(ctx, infoHash, title, trackersTPB)
 		if c.logFoundTorrents {
 			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnetURL), zapFieldID, zapFieldTorrentSite)
