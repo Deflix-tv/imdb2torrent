@@ -194,6 +194,8 @@ type Result struct {
 	InfoHash string
 	// MagnetURL, usually containing the info_hash, torrent name and a list of torrent trackers
 	MagnetURL string
+	// True if the client didn't do the search via IMDb ID but title, which can lead to inaccurate results
+	Fuzzy bool
 }
 
 func replaceURL(origURL, newBaseURL string) (string, error) {

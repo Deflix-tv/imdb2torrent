@@ -226,11 +226,6 @@ func (c *leetxClient) find(ctx context.Context, id, urlPath, title string, isTVS
 				quality += (" (⚠️cam)")
 			}
 
-			// We should mark 1337x movies somehow, because we cannot be 100% sure it's the correct movie.
-			// The quality might later be used as title, as suggested by Stremio.
-			// (Albeit only in a specific case for a specific reason)
-			quality += "\n(⚠️guessed match)"
-
 			// look for "btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&" via regex and then cut out the hash
 			match := magnet2InfoHashRegex.Find([]byte(magnet))
 			infoHash := strings.TrimPrefix(string(match), "btih:")
@@ -252,6 +247,7 @@ func (c *leetxClient) find(ctx context.Context, id, urlPath, title string, isTVS
 				Quality:   quality,
 				InfoHash:  infoHash,
 				MagnetURL: magnet,
+				Fuzzy:     true,
 			}
 			if c.logFoundTorrents {
 				c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
