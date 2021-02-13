@@ -19,6 +19,7 @@ import (
 var magnet2InfoHashRegexIbit = regexp.MustCompile(`btih:.+?\\x26dn=`) // The "?" makes the ".+" non-greedy
 
 type IbitClientOptions struct {
+	// Typically "https://ibit.am"
 	BaseURL  string
 	Timeout  time.Duration
 	CacheAge time.Duration

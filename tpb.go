@@ -29,6 +29,8 @@ var (
 )
 
 type TPBclientOptions struct {
+	// Typically "https://apibay.org" when connecting via clearnet.
+	// Typically "http://piratebayztemzmv.onion" when connecting via Tor.
 	BaseURL        string
 	SocksProxyAddr string
 	Timeout        time.Duration
@@ -63,7 +65,7 @@ type tpbClient struct {
 }
 
 func NewTPBclient(opts TPBclientOptions, cache Cache, metaGetter MetaGetter, logger *zap.Logger, logFoundTorrents bool) (*tpbClient, error) {
-	// Using a SOCKS5 proxy allows us to make requests to TPB via the TOR network
+	// Using a SOCKS5 proxy allows us to make requests to TPB via the Tor network
 	var httpClient *http.Client
 	if opts.SocksProxyAddr != "" {
 		var err error

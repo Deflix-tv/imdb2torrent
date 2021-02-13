@@ -15,6 +15,7 @@ import (
 )
 
 type RARBGclientOptions struct {
+	// Typically "https://torrentapi.org"
 	BaseURL  string
 	Timeout  time.Duration
 	CacheAge time.Duration

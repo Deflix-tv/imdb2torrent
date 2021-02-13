@@ -25,6 +25,7 @@ var (
 )
 
 type YTSclientOptions struct {
+	// Typically "https://yts.mx"
 	BaseURL  string
 	Timeout  time.Duration
 	CacheAge time.Duration

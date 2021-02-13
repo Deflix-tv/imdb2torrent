@@ -14,6 +14,7 @@ import (
 )
 
 type LeetxClientOptions struct {
+	// Typically "https://1337x.to"
 	BaseURL  string
 	Timeout  time.Duration
 	CacheAge time.Duration
