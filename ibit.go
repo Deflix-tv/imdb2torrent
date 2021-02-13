@@ -197,28 +197,36 @@ func (c *ibitClient) FindMovie(ctx context.Context, imdbID string) ([]Result, er
 			infoHash = strings.TrimSuffix(infoHash, `\x26dn=`)
 			infoHash = strings.ReplaceAll(infoHash, "-", "")
 			infoHash = strings.ToUpper(infoHash)
-			// The rest of the magnet is also a bit "obfuscated" (they're using some hex characters, but not everywhere)
-			if infoHash != "" {
-				magnetTailIndex := strings.Index(magnet, `\x26tr=`)
-				if magnetTailIndex == -1 {
-					c.logger.Warn(`Couldn't recreate magnet URL by cutting at \x26tr=. Did the HTML change?`, zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
+			if infoHash == "" {
+				c.logger.Warn("Couldn't extract info_hash. Did the HTML change?", zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
+				continue
+			}
+			// They add some "XX" into the info_hash
+			if len(infoHash) != 40 {
+				infoHash = strings.ReplaceAll(infoHash, "XX", "")
+				if len(infoHash) != 40 {
+					c.logger.Warn("InfoHash isn't 40 characters long", zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
 					continue
 				}
-				magnetTail := string(([]byte(magnet))[magnetTailIndex:])
-				magnetTail = strings.ReplaceAll(magnetTail, `\x26`, "&")
-				magnet = "magnet:?xt=urn:btih:" + infoHash + "&dn=" + url.QueryEscape(title) + magnetTail
 			}
-		}
-
-		if infoHash == "" {
-			c.logger.Warn("Couldn't extract info_hash. Did the HTML change?", zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
-			continue
+			// The rest of the magnet is also a bit "obfuscated" (they're using some hex characters, but not everywhere)
+			magnetTailIndex := strings.Index(magnet, `\x26tr=`)
+			if magnetTailIndex == -1 {
+				c.logger.Warn(`Couldn't recreate magnet URL by cutting at \x26tr=. Did the HTML change?`, zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
+				continue
+			}
+			magnetTail := string(([]byte(magnet))[magnetTailIndex:])
+			magnetTail = strings.ReplaceAll(magnetTail, `\x26`, "&")
+			magnet = "magnet:?xt=urn:btih:" + infoHash + "&dn=" + url.QueryEscape(title) + magnetTail
 		} else if len(infoHash) != 40 {
-			infoHash = strings.ReplaceAll(infoHash, "XX", "")
+			newInfoHash := strings.ReplaceAll(infoHash, "XX", "")
 			if len(infoHash) != 40 {
 				c.logger.Warn("InfoHash isn't 40 characters long", zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
 				continue
 			}
+			// Also fix the magnet URL
+			magnet = strings.Replace(magnet, infoHash, newInfoHash, -1)
+			infoHash = newInfoHash
 		}
 
 		result := Result{
