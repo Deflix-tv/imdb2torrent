@@ -97,7 +97,7 @@ func (c *tpbClient) FindMovie(ctx context.Context, imdbID string) ([]Result, err
 	}
 	// Note: It seems that apibay.org has a "cat=" query parameter, but using the category 207 for "HD Movies" doesn't work (torrents for category 201 ("Movies") are returned as well).
 	escapedQuery := imdbID
-	return c.find(ctx, imdbID, meta.Title, escapedQuery)
+	return c.find(ctx, imdbID, meta.Title, escapedQuery, false)
 }
 
 // FindTVShow calls the TPB API to find torrents for the given IMDb ID + season + episode.
@@ -117,11 +117,11 @@ func (c *tpbClient) FindTVShow(ctx context.Context, imdbID string, season, episo
 	queryEscaped := url.QueryEscape(query)
 	// Category 205 is for "TV shows", 208 is for "HD - TV shows" and this indeed works (different from HD movies)
 	queryEscaped += "&cat=208"
-	return c.find(ctx, id, meta.Title, queryEscaped)
+	return c.find(ctx, id, meta.Title, queryEscaped, true)
 }
 
 // Query must be URL-escaped already.
-func (c *tpbClient) find(ctx context.Context, id, title, escapedQuery string) ([]Result, error) {
+func (c *tpbClient) find(ctx context.Context, id, title, escapedQuery string, fuzzy bool) ([]Result, error) {
 	zapFieldID := zap.String("id", id)
 	zapFieldTorrentSite := zap.String("torrentSite", "TPB")
 
@@ -204,6 +204,7 @@ func (c *tpbClient) find(ctx context.Context, id, title, escapedQuery string) ([
 			Quality:   quality,
 			InfoHash:  infoHash,
 			MagnetURL: magnetURL,
+			Fuzzy:     fuzzy, // Fuzzy for TV shows, but not for movies (as it depends on search via IMDb ID vs. title)
 			Size:      size,
 		}
 		results = append(results, result)
