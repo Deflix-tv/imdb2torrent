@@ -37,13 +37,29 @@ type findFunc func(context.Context, MagnetSearcher) ([]Result, error)
 
 type Client struct {
 	timeout     time.Duration
+	slowTimeout time.Duration
 	siteClients map[string]MagnetSearcher
 	logger      *zap.Logger
 }
 
-func NewClient(siteClients map[string]MagnetSearcher, timeout time.Duration, logger *zap.Logger) *Client {
+// The timeouts here are not the ones used in the site-specific clients (for their HTTP requests).
+// Instead they're used as limit for waiting for individual clients' results, as all of the searches are started concurrently.
+// So for example while the 1337x client makes multiple requests, each with their respective timeout, the timeout here will
+// be the max time that this "multi"-client waits for a result.
+//
+// timeout is the regular timeout for clients that are expected to respond quickly.
+// slowTimeout is the timeout for clients that make themselves known as being slow.
+// For example the RARBG rate limit is 2s, so when we don't do any request for 15m and thus need to renew the token,
+// the client has to wait 2s for the actual torrent request, which might be longer than you want.
+// Seeting it to 2s leads to only getting RARBG results when 1. the token is fresh and 2. no concurrent requests are done
+// (the latter because requests to RARBG get queued so we don't exceed the rate limit with concurrent requests).
+// You might wonder why not use a single timeout value, but the separation is useful for example if you *expect* the fast clients
+// to respond in under a second in most cases, but want to allow them 5s for some irregular circumstances,
+// while you know ibit can take 10s and more, but for the average case you only want to wait 2s max (and not 5s).
+func NewClient(siteClients map[string]MagnetSearcher, timeout, slowTimeout time.Duration, logger *zap.Logger) *Client {
 	return &Client{
 		timeout:     timeout,
+		slowTimeout: slowTimeout,
 		siteClients: siteClients,
 		logger:      logger,
 	}
@@ -85,8 +101,7 @@ func (c *Client) find(ctx context.Context, id string, find findFunc) ([]Result, 
 		// We need to create a new timer for each site client because a timer's channel is drained once used, so for example if these timers were created outside the loop and there are two slow (IsSlow()==true) clients, the timeout would only work for one of them!
 		var timer *time.Timer
 		if siteClient.IsSlow() {
-			// Note that the RARBG rate limit is 2s so when no request arrived for 15m the token has to be renewed, leading to the client having to wait 2s for the actual torrent request. So we only get RARBG results when 1. the token is fresh and 2. no concurrent requests are coming in.
-			timer = time.NewTimer(2 * time.Second)
+			timer = time.NewTimer(c.slowTimeout)
 		} else {
 			timer = time.NewTimer(c.timeout)
 		}
