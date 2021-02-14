@@ -231,29 +231,34 @@ func (c *ibitClient) FindMovie(ctx context.Context, imdbID string) ([]Result, er
 			infoHash = newInfoHash
 		}
 		var size int
+		var name string
 		doc.Find(".more-info li span").Each(func(i int, sel *goquery.Selection) {
 			itemprop, exists := sel.Attr("itemprop")
-			if exists && itemprop == "fileSize" {
-				sizeString := sel.Text()
-				if sizeString == "" {
-					c.logger.Warn("Couldn't find torrent size", zapFieldID, zapFieldTorrentSite)
-				} else {
-					sizeSplit := strings.Split(sizeString, " ")
-					if len(sizeSplit) != 2 {
-						c.logger.Warn("Expected two parts after splitting size string", zap.String("sizeString", sizeString), zapFieldID, zapFieldTorrentSite)
+			if exists {
+				if itemprop == "fileSize" {
+					sizeString := sel.Text()
+					if sizeString == "" {
+						c.logger.Warn("Couldn't find torrent size", zapFieldID, zapFieldTorrentSite)
 					} else {
-						sizeFloat, err := strconv.ParseFloat(sizeSplit[0], 64)
-						if err != nil {
-							c.logger.Warn("Couldn't convert torrent size to float", zap.Error(err), zap.String("sizeString", sizeString), zapFieldID, zapFieldTorrentSite)
+						sizeSplit := strings.Split(sizeString, " ")
+						if len(sizeSplit) != 2 {
+							c.logger.Warn("Expected two parts after splitting size string", zap.String("sizeString", sizeString), zapFieldID, zapFieldTorrentSite)
 						} else {
-							switch sizeSplit[1] {
-							case "MB":
-								size = int(sizeFloat * 1_000_000)
-							case "GB":
-								size = int(sizeFloat * 1_000_000_000)
+							sizeFloat, err := strconv.ParseFloat(sizeSplit[0], 64)
+							if err != nil {
+								c.logger.Warn("Couldn't convert torrent size to float", zap.Error(err), zap.String("sizeString", sizeString), zapFieldID, zapFieldTorrentSite)
+							} else {
+								switch sizeSplit[1] {
+								case "MB":
+									size = int(sizeFloat * 1_000_000)
+								case "GB":
+									size = int(sizeFloat * 1_000_000_000)
+								}
 							}
 						}
 					}
+				} else if itemprop == "alternativeHeadline" {
+					name = sel.Text()
 				}
 			}
 		})
@@ -262,6 +267,7 @@ func (c *ibitClient) FindMovie(ctx context.Context, imdbID string) ([]Result, er
 			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
 		}
 		result := Result{
+			Name:      name,
 			Title:     title,
 			Quality:   quality,
 			InfoHash:  infoHash,

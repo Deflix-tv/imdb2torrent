@@ -135,6 +135,7 @@ func (c *ytsClient) FindMovie(ctx context.Context, imdbID string) ([]Result, err
 				c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnetURL), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
 			}
 			result := Result{
+				Name:      title + " [" + quality + "] [YTS]",
 				Title:     title,
 				Quality:   quality,
 				InfoHash:  infoHash,

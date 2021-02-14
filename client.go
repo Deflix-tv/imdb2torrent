@@ -186,7 +186,11 @@ func (c *Client) GetMagnetSearchers() map[string]MagnetSearcher {
 }
 
 type Result struct {
-	// Movie title, e.g. "Big Buck Bunny"
+	// Name of the torrent, as given on the torrent site.
+	// E.g. "Night of the Living Dead (1968) [BluRay] [1080p] [YTS] [YIFY]"
+	// Or "Night.Of.The.Living.Dead.1968.720p.BluRay.x264-CtrlHD [PublicHD]"
+	Name string
+	// Movie title, e.g. "Night of the Living Dead"
 	Title string
 	// Video resolution and source, e.g. "720p" or "720p (web)"
 	Quality string

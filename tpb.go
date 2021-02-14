@@ -199,6 +199,7 @@ func (c *tpbClient) find(ctx context.Context, id, title, escapedQuery string) ([
 			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnetURL), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
 		}
 		result := Result{
+			Name:      torrentName,
 			Title:     title,
 			Quality:   quality,
 			InfoHash:  infoHash,

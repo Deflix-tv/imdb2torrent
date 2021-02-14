@@ -2,6 +2,7 @@ package imdb2torrent
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -31,6 +32,8 @@ func TestTPBMovie(t *testing.T) {
 	require.NotEmpty(t, torrents)
 
 	firstElem := torrents[0]
+	fmt.Printf("TPB result first elem: %+v\n", firstElem)
+	require.NotEmpty(t, firstElem.Name)
 	require.Len(t, firstElem.InfoHash, 40)
 	require.True(t, strings.HasPrefix(firstElem.MagnetURL, "magnet:?xt=urn:btih:"+firstElem.InfoHash))
 	require.Regexp(t, qualityRegex, firstElem.Quality)

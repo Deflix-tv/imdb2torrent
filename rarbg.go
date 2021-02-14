@@ -189,6 +189,7 @@ func (c *rarbgClient) find(ctx context.Context, id, escapedQuery string) ([]Resu
 			c.logger.Debug("Found torrent", zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
 		}
 		result := Result{
+			Name: filename,
 			// We don't know the title, but it will be overwritten by the quality anyway
 			// Title: "",
 			Quality:   quality,

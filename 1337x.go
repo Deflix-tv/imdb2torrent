@@ -264,11 +264,14 @@ func (c *leetxClient) find(ctx context.Context, id, urlPath, title string, isTVS
 					}
 				}
 			}
+			name := doc.Find(".box-info-heading h1").Text()
+			name = strings.Trim(name, " ")
 
 			if c.logFoundTorrents {
 				c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
 			}
 			result := Result{
+				Name:      name,
 				Title:     title,
 				Quality:   quality,
 				InfoHash:  infoHash,
