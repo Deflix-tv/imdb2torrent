@@ -196,6 +196,8 @@ type Result struct {
 	MagnetURL string
 	// True if the client didn't do the search via IMDb ID but title, which can lead to inaccurate results
 	Fuzzy bool
+	// Size in bytes. 0 if it couldn't be determined.
+	Size int
 }
 
 func replaceURL(origURL, newBaseURL string) (string, error) {

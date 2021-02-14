@@ -126,8 +126,17 @@ func (c *rarbgClient) find(ctx context.Context, id, escapedQuery string) ([]Resu
 		c.lastRequest = time.Now()
 	}()
 
-	url := c.baseURL + "/pubapi_v2.php?app_id=deflix&mode=search&sort=seeders&ranked=0&token=" + c.token + "&" + escapedQuery
-	res, err := c.httpClient.Get(url)
+	// `format=json_extended` for size info
+	url := c.baseURL + "/pubapi_v2.php?app_id=deflix&mode=search&sort=seeders&format=json_extended&ranked=0&token=" + c.token + "&" + escapedQuery
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't create request: %v", err)
+	}
+	// For one and the same IMDb ID, RARBG sometimes returns results, sometimes a JSON saying that no result was found.
+	// The rate of success is higher with cURL, and very low when doing `c.httpClient.Get(url)`, so we're trying to identify as cURL.
+	req.Header.Set("User-Agent", "curl/7.47.0")
+	req.Header.Set("Accept", "*/*")
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't GET %v: %v", url, err)
 	}
@@ -148,7 +157,9 @@ func (c *rarbgClient) find(ctx context.Context, id, escapedQuery string) ([]Resu
 	}
 	var results []Result
 	for _, torrent := range torrents {
-		filename := torrent.Get("filename").String()
+		// Note: When using `format=json` or no format in the query, use "filename" here,
+		// otherwise (`format=json_extended`) use "title" here.
+		filename := torrent.Get("title").String()
 
 		quality := ""
 		if strings.Contains(filename, "720p") {
@@ -168,14 +179,14 @@ func (c *rarbgClient) find(ctx context.Context, id, escapedQuery string) ([]Resu
 		infoHash := strings.TrimPrefix(string(match), "btih:")
 		infoHash = strings.TrimSuffix(infoHash, "&")
 		infoHash = strings.ToLower(infoHash)
-
 		if len(infoHash) != 40 {
 			c.logger.Error("InfoHash isn't 40 characters long", zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
 			continue
 		}
+		size := int(torrent.Get("size").Int())
 
 		if c.logFoundTorrents {
-			c.logger.Debug("Found torrent", zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
+			c.logger.Debug("Found torrent", zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
 		}
 		result := Result{
 			// We don't know the title, but it will be overwritten by the quality anyway
@@ -183,6 +194,7 @@ func (c *rarbgClient) find(ctx context.Context, id, escapedQuery string) ([]Resu
 			Quality:   quality,
 			InfoHash:  infoHash,
 			MagnetURL: magnet,
+			Size:      size,
 		}
 		results = append(results, result)
 	}

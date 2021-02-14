@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -229,15 +230,43 @@ func (c *ibitClient) FindMovie(ctx context.Context, imdbID string) ([]Result, er
 			magnet = strings.Replace(magnet, infoHash, newInfoHash, -1)
 			infoHash = newInfoHash
 		}
+		var size int
+		doc.Find(".more-info li span").Each(func(i int, sel *goquery.Selection) {
+			itemprop, exists := sel.Attr("itemprop")
+			if exists && itemprop == "fileSize" {
+				sizeString := sel.Text()
+				if sizeString == "" {
+					c.logger.Warn("Couldn't find torrent size", zapFieldID, zapFieldTorrentSite)
+				} else {
+					sizeSplit := strings.Split(sizeString, " ")
+					if len(sizeSplit) != 2 {
+						c.logger.Warn("Expected two parts after splitting size string", zap.String("sizeString", sizeString), zapFieldID, zapFieldTorrentSite)
+					} else {
+						sizeFloat, err := strconv.ParseFloat(sizeSplit[0], 64)
+						if err != nil {
+							c.logger.Warn("Couldn't convert torrent size to float", zap.Error(err), zap.String("sizeString", sizeString), zapFieldID, zapFieldTorrentSite)
+						} else {
+							switch sizeSplit[1] {
+							case "MB":
+								size = int(sizeFloat * 1_000_000)
+							case "GB":
+								size = int(sizeFloat * 1_000_000_000)
+							}
+						}
+					}
+				}
+			}
+		})
 
+		if c.logFoundTorrents {
+			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
+		}
 		result := Result{
 			Title:     title,
 			Quality:   quality,
 			InfoHash:  infoHash,
 			MagnetURL: magnet,
-		}
-		if c.logFoundTorrents {
-			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zapFieldID, zapFieldTorrentSite)
+			Size:      size,
 		}
 
 		results = append(results, result)

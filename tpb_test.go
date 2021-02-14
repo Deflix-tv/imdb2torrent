@@ -35,4 +35,5 @@ func TestTPBMovie(t *testing.T) {
 	require.True(t, strings.HasPrefix(firstElem.MagnetURL, "magnet:?xt=urn:btih:"+firstElem.InfoHash))
 	require.Regexp(t, qualityRegex, firstElem.Quality)
 	require.Equal(t, firstElem.Title, "Night of the Living Dead")
+	require.Greater(t, firstElem.Size, 0)
 }

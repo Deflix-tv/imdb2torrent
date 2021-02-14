@@ -193,14 +193,17 @@ func (c *tpbClient) find(ctx context.Context, id, title, escapedQuery string) ([
 		}
 		infoHash = strings.ToLower(infoHash)
 		magnetURL := createMagnetURL(ctx, infoHash, title, trackersTPB)
+		size := int(torrent.Get("size").Int())
+
 		if c.logFoundTorrents {
-			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnetURL), zapFieldID, zapFieldTorrentSite)
+			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnetURL), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
 		}
 		result := Result{
 			Title:     title,
 			Quality:   quality,
 			InfoHash:  infoHash,
 			MagnetURL: magnetURL,
+			Size:      size,
 		}
 		results = append(results, result)
 	}
