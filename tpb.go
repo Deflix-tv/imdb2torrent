@@ -194,9 +194,10 @@ func (c *tpbClient) find(ctx context.Context, id, title, escapedQuery string, fu
 		infoHash = strings.ToLower(infoHash)
 		magnetURL := createMagnetURL(ctx, infoHash, title, trackersTPB)
 		size := int(torrent.Get("size").Int())
+		seeders := int(torrent.Get("seeders").Int())
 
 		if c.logFoundTorrents {
-			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnetURL), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
+			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnetURL), zap.Int("size", size), zap.Int("seeders", seeders), zapFieldID, zapFieldTorrentSite)
 		}
 		result := Result{
 			Name:      torrentName,
@@ -206,6 +207,7 @@ func (c *tpbClient) find(ctx context.Context, id, title, escapedQuery string, fu
 			MagnetURL: magnetURL,
 			Fuzzy:     fuzzy, // Fuzzy for TV shows, but not for movies (as it depends on search via IMDb ID vs. title)
 			Size:      size,
+			Seeders:   seeders,
 		}
 		results = append(results, result)
 	}

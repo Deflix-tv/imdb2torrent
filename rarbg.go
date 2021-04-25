@@ -184,9 +184,10 @@ func (c *rarbgClient) find(ctx context.Context, id, escapedQuery string) ([]Resu
 			continue
 		}
 		size := int(torrent.Get("size").Int())
+		seeders := int(torrent.Get("seeders").Int())
 
 		if c.logFoundTorrents {
-			c.logger.Debug("Found torrent", zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
+			c.logger.Debug("Found torrent", zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zap.Int("seeders", seeders), zapFieldID, zapFieldTorrentSite)
 		}
 		result := Result{
 			Name: filename,
@@ -196,6 +197,7 @@ func (c *rarbgClient) find(ctx context.Context, id, escapedQuery string) ([]Resu
 			InfoHash:  infoHash,
 			MagnetURL: magnet,
 			Size:      size,
+			Seeders:   seeders,
 		}
 		results = append(results, result)
 	}

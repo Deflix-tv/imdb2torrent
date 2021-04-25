@@ -270,9 +270,14 @@ func (c *leetxClient) find(ctx context.Context, id, urlPath, title string, isTVS
 			if strings.HasSuffix(name, "...") {
 				name = doc.Find(".torrent-tabs .tab-content .file-content span").First().Text()
 			}
+			seedersString := doc.Find(".box-info .list").Eq(1).Find(".seeds").Text()
+			seeders, err := strconv.Atoi(seedersString)
+			if err != nil {
+				c.logger.Warn("Couldn't convert torrent seeders to int", zap.Error(err), zap.String("seedersString", seedersString), zapFieldID, zapFieldTorrentSite)
+			}
 
 			if c.logFoundTorrents {
-				c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
+				c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zap.Int("seeders", seeders), zapFieldID, zapFieldTorrentSite)
 			}
 			result := Result{
 				Name:      name,
@@ -282,6 +287,7 @@ func (c *leetxClient) find(ctx context.Context, id, urlPath, title string, isTVS
 				MagnetURL: magnet,
 				Fuzzy:     true,
 				Size:      size,
+				Seeders:   seeders,
 			}
 
 			resultChan <- result

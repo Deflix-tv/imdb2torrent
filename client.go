@@ -217,6 +217,8 @@ type Result struct {
 	Fuzzy bool
 	// Size in bytes. 0 if it couldn't be determined.
 	Size int
+	// Number of seeders according to the torrent site
+	Seeders int
 }
 
 func replaceURL(origURL, newBaseURL string) (string, error) {

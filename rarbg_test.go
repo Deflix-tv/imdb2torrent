@@ -30,4 +30,5 @@ func TestRARBGMovie(t *testing.T) {
 	// RARBG response doesn't contain a title, and it doesn't use the metaGetter
 	// require.Equal(t, firstElem.Title, "Night of the Living Dead")
 	require.Greater(t, firstElem.Size, 0)
+	require.Greater(t, firstElem.Seeders, 0)
 }

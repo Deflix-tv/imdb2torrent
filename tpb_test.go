@@ -39,4 +39,5 @@ func TestTPBMovie(t *testing.T) {
 	require.Regexp(t, qualityRegex, firstElem.Quality)
 	require.Equal(t, firstElem.Title, "Night of the Living Dead")
 	require.Greater(t, firstElem.Size, 0)
+	require.Greater(t, firstElem.Seeders, 0)
 }

@@ -263,9 +263,14 @@ func (c *ibitClient) FindMovie(ctx context.Context, imdbID string) ([]Result, er
 				}
 			}
 		})
+		seedersString := doc.Find(".summary li").First().Find("span").Text()
+		seeders, err := strconv.Atoi(seedersString)
+		if err != nil {
+			c.logger.Warn("Couldn't convert torrent seeders to int", zap.Error(err), zap.String("seedersString", seedersString), zapFieldID, zapFieldTorrentSite)
+		}
 
 		if c.logFoundTorrents {
-			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
+			c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnet), zap.Int("size", size), zap.Int("seeders", seeders), zapFieldID, zapFieldTorrentSite)
 		}
 		result := Result{
 			Name:      name,
@@ -274,6 +279,7 @@ func (c *ibitClient) FindMovie(ctx context.Context, imdbID string) ([]Result, er
 			InfoHash:  infoHash,
 			MagnetURL: magnet,
 			Size:      size,
+			Seeders:   seeders,
 		}
 
 		results = append(results, result)

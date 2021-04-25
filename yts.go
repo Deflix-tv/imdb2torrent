@@ -130,9 +130,10 @@ func (c *ytsClient) FindMovie(ctx context.Context, imdbID string) ([]Result, err
 				quality += " (" + ripType + ")"
 			}
 			size := int(torrent.Get("size_bytes").Int())
+			seeders := int(torrent.Get("seeds").Int())
 
 			if c.logFoundTorrents {
-				c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnetURL), zap.Int("size", size), zapFieldID, zapFieldTorrentSite)
+				c.logger.Debug("Found torrent", zap.String("title", title), zap.String("quality", quality), zap.String("infoHash", infoHash), zap.String("magnet", magnetURL), zap.Int("size", size), zap.Int("seeders", seeders), zapFieldID, zapFieldTorrentSite)
 			}
 			result := Result{
 				Name:      title + " [" + quality + "] [YTS]",
@@ -141,6 +142,7 @@ func (c *ytsClient) FindMovie(ctx context.Context, imdbID string) ([]Result, err
 				InfoHash:  infoHash,
 				MagnetURL: magnetURL,
 				Size:      size,
+				Seeders:   seeders,
 			}
 			results = append(results, result)
 		}
