@@ -248,11 +248,12 @@ func (c *ibitClient) FindMovie(ctx context.Context, imdbID string) ([]Result, er
 							if err != nil {
 								c.logger.Warn("Couldn't convert torrent size to float", zap.Error(err), zap.String("sizeString", sizeString), zapFieldID, zapFieldTorrentSite)
 							} else {
+								// 1337x uses MiB and GiB, but calls them MB and GB, so we have to multiply with 1024 instead of 1000.
 								switch sizeSplit[1] {
 								case "MB":
-									size = int(sizeFloat * 1_000_000)
+									size = int(sizeFloat * 1024 * 1024)
 								case "GB":
-									size = int(sizeFloat * 1_000_000_000)
+									size = int(sizeFloat * 1024 * 1024 * 1024)
 								}
 							}
 						}
